@@ -1,0 +1,6 @@
+Item,Amount,Category
+Alpha,10,A
+Beta,20,B
+Beta,20,B
+Gamma,,A
+Outlier,1000,C

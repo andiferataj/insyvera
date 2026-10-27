@@ -1,0 +1,10 @@
+{
+  "income": 84000,
+  "expenses": 18000,
+  "taxable_income": 66000,
+  "reported_income": 84500,
+  "income_difference": 500,
+  "gift_spending": 570,
+  "gift_budget": 500,
+  "over_budget": 70
+}

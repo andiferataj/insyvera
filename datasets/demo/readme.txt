@@ -1,0 +1,1 @@
+These records do not contain bank credentials or establish available cash.
