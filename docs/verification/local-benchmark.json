@@ -1,0 +1,9 @@
+{
+  "requests": 40,
+  "concurrency": 4,
+  "p50_ms": 54.22399999224581,
+  "p95_ms": 62.43770002038218,
+  "max_ms": 76.54229999752715,
+  "workload": "seven synthetic sources; lexical retrieval",
+  "limit": "Not a capacity or production SLA measurement."
+}

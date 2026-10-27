@@ -1,0 +1,51 @@
+name: Quality gates
+on: [push, pull_request]
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.13', cache: pip}
+      - run: pip install -r requirements.lock && pip install -e . --no-deps
+      - run: ruff check apps/api tests
+      - run: pytest -q --junitxml=backend-results.xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: {name: backend-results, path: backend-results.xml}
+  web:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '24', cache: npm, cache-dependency-path: apps/web/package-lock.json}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.13'}
+      - run: python -m venv .venv
+      - run: .venv/Scripts/python.exe -m pip install -r requirements.lock
+      - run: .venv/Scripts/python.exe -m pip install -e . --no-deps
+      - run: npm ci
+      - run: npm --prefix apps/web ci
+      - run: npm run build
+      - run: npx playwright install chromium
+      - run: npm run test:e2e
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: {name: browser-results, path: 'playwright-report/'}
+  infrastructure:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate ephemeral test credentials
+        run: |
+          cp .env.example .env
+          sed -i "s/^POSTGRES_PASSWORD=$/POSTGRES_PASSWORD=$(openssl rand -hex 24)/" .env
+          sed -i "s/^MINIO_ROOT_PASSWORD=$/MINIO_ROOT_PASSWORD=$(openssl rand -hex 24)/" .env
+      - run: docker compose up --build -d --wait --wait-timeout 300
+      - run: docker compose exec -T api python infrastructure/scripts/check_infrastructure.py
+      - name: Logs
+        if: failure()
+        run: docker compose logs --no-color
+      - name: Stop
+        if: always()
+        run: docker compose down
