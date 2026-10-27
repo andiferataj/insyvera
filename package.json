@@ -1,0 +1,16 @@
+{
+  "name": "insyvera",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "npm --prefix apps/web run dev",
+    "build": "npm --prefix apps/web run build",
+    "typecheck": "npm --prefix apps/web run typecheck",
+    "test:e2e": "playwright test",
+    "test:api": ".venv/Scripts/python.exe -m pytest -q",
+    "check": "npm run typecheck && npm run build"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.64.1"
+  }
+}
