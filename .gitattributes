@@ -4,3 +4,4 @@
 *.docx binary
 *.png binary
 *.zip binary
+*.md whitespace=-blank-at-eol
