@@ -119,3 +119,14 @@ The first uploaded run passed the backend job but failed web startup and infrast
 The source-build change still needs execution in a working Docker environment. It does not, by itself, establish a passing infrastructure job. Push these changes and inspect the new GitHub Actions run; re-running the old commit does not include the repair.
 
 Repair checks completed locally: both launcher regression tests passed, including invocation from another working directory and exit-code propagation; a Windows `cmd.exe` launch with a script path containing spaces passed; the production web build, JavaScript syntax checks and `docker compose config --quiet` passed. The new launcher checks also run before the web build in CI. Full backend/browser rerun attempts stalled in the restricted local execution environment and were interrupted; they are not recorded as new passes. Docker's engine was unavailable, so source-image build and full infrastructure verification remain pending.
+
+### Celery readiness follow-up — 30 October 2026
+
+The next user-provided CI log reached the Celery check after the database/vector/FTS, object-storage and Redis checks, then failed the single five-second worker ping. The worker previously had no Compose healthcheck, allowing `--wait` to finish with a running but not-yet-ready worker container. That readiness gap is corrected; whether the reported worker was only starting or had a runtime failure still requires its service logs.
+
+- Workers now have unique `insyvera@hostname` names and a targeted Celery-pong healthcheck. Compose waits for worker health.
+- The infrastructure verifier uses bounded readiness retries, then requires a real queued health task to return its unique nonce through the result backend. Non-responses and wrong replies still fail the check; a scheduler ping cannot substitute for a worker response.
+- CI bounds the infrastructure verification step and includes container states in failure diagnostics.
+- **Eight readiness/task regression tests passed locally (6.82 seconds)**, covering delayed startup, transient broker errors, readiness deadlines, rejecting scheduler/error replies, targeting the current container, rejecting other-worker replies, and the health task payload. The eighth test starts a real Celery worker using the in-memory broker, requires its pong, and sends a health task through its consumer/result backend. Ruff, Compose configuration and worker-healthcheck wiring checks passed. This local worker test does not substitute for Redis/Docker integration.
+
+The local Docker engine remains unavailable. The new worker healthcheck and broker-to-worker task round trip are implemented but await verification in the next GitHub Actions run. This is not a claimed live infrastructure pass.

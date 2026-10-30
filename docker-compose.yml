@@ -78,12 +78,18 @@ services:
     restart: unless-stopped
   worker:
     build: {context: ., dockerfile: infrastructure/docker/api.Dockerfile}
-    command: ["python", "-m", "celery", "-A", "app.jobs.celery", "worker", "--loglevel=info", "--concurrency=2", "--beat", "--schedule=/app/data/beat-schedule"]
+    command: ["python", "-m", "celery", "-A", "app.jobs.celery", "worker", "--hostname=insyvera@%h", "--loglevel=info", "--concurrency=2", "--beat", "--schedule=/app/data/beat-schedule"]
     environment: *app-environment
     volumes: [app_data:/app/data]
     extra_hosts: ["host.docker.internal:host-gateway"]
     depends_on:
       api: {condition: service_healthy}
+    healthcheck:
+      test: ["CMD", "python", "-m", "app.worker_health"]
+      interval: 5s
+      timeout: 10s
+      start_period: 30s
+      retries: 20
     security_opt: [no-new-privileges:true]
     cap_drop: [ALL]
     deploy: {resources: {limits: {memory: 2G, cpus: "2"}}}

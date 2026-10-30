@@ -10,6 +10,10 @@ No cloud deployment is included in this task.
 - Logs: `docker compose logs --tail 100 api worker`; local mode logs under .local.
 - Broker failure is visible on the affected run/version; retry after recovery.
 
+The worker has its own Celery readiness healthcheck, targeted at its unique `insyvera@hostname` node. `docker compose up --wait` requires the worker to answer before the infrastructure verifier runs. The verifier then waits up to 60 seconds for readiness and submits a nonce-tagged health task, requiring its matching result within 30 seconds. A container merely being running, another node responding, or Redis accepting a connection is not sufficient.
+
+If the worker fails readiness, inspect `docker compose ps -a` and `docker compose logs --tail=100 worker`. CI prints both container state and service logs on failure. Do not bypass the worker check or mark the infrastructure verified until the task round trip passes.
+
 ## Port ownership
 
 Use the dedicated Compose project name insyvera. Defaults are 5180 (web) and 8100 (API), avoiding sibling-project database ports. Never reset Nexus/Velqora volumes.

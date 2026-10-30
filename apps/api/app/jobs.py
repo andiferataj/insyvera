@@ -43,3 +43,9 @@ def cleanup_task():
     return retry_failed()
 
 celery.conf.beat_schedule = {"storage-cleanup": {"task": "insyvera.cleanup", "schedule": 60.0}}
+
+
+@celery.task(name="insyvera.health", expires=60, acks_late=False)
+def health_task(nonce):
+    """A harmless queue/result-backend round trip for infrastructure verification."""
+    return {"status": "ok", "nonce": nonce}

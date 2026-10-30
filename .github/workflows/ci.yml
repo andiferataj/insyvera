@@ -44,10 +44,14 @@ jobs:
           sed -i "s/^POSTGRES_PASSWORD=$/POSTGRES_PASSWORD=$(openssl rand -hex 24)/" .env
           sed -i "s/^MINIO_ROOT_PASSWORD=$/MINIO_ROOT_PASSWORD=$(openssl rand -hex 24)/" .env
       - run: docker compose up --build -d --wait --wait-timeout 300
-      - run: docker compose exec -T api python infrastructure/scripts/check_infrastructure.py
+      - name: Verify database storage and Celery execution
+        timeout-minutes: 3
+        run: docker compose exec -T api python infrastructure/scripts/check_infrastructure.py
       - name: Logs
         if: failure()
-        run: docker compose logs --no-color
+        run: |
+          docker compose ps -a
+          docker compose logs --no-color
       - name: Stop
         if: always()
         run: docker compose down
