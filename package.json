@@ -7,7 +7,8 @@
     "build": "npm --prefix apps/web run build",
     "typecheck": "npm --prefix apps/web run typecheck",
     "test:e2e": "playwright test",
-    "test:api": ".venv/Scripts/python.exe -m pytest -q",
+    "test:api": "node infrastructure/scripts/python.cjs -m pytest -q",
+    "test:launcher": "node --test tests/launcher.test.cjs",
     "check": "npm run typecheck && npm run build"
   },
   "devDependencies": {

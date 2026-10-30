@@ -26,6 +26,7 @@ jobs:
       - run: .venv/Scripts/python.exe -m pip install -e . --no-deps
       - run: npm ci
       - run: npm --prefix apps/web ci
+      - run: npm run test:launcher
       - run: npm run build
       - run: npx playwright install chromium
       - run: npm run test:e2e
@@ -34,6 +35,7 @@ jobs:
         with: {name: browser-results, path: 'playwright-report/'}
   infrastructure:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - name: Generate ephemeral test credentials

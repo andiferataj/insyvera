@@ -107,6 +107,8 @@ docker compose exec api python infrastructure/scripts/check_infrastructure.py
 
 The bootstrap script creates random local database/storage credentials only when `.env` is absent. Existing configuration is preserved.
 
+MinIO is built from its official source at the pinned commit for RELEASE.2025-09-07T16-13-09Z. The stack does not pull `minio/minio` from Docker Hub or depend on a Quay mirror. Its first build downloads Go dependencies and compiles the server, so allow additional build time. The existing MinIO data volume is retained.
+
 | Service | Address |
 |---|---|
 | Web | http://localhost:5180 |

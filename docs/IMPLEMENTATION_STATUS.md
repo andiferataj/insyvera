@@ -107,3 +107,15 @@ Docker Desktop's Linux engine was unavailable in this session. Compose parsing s
 7. Cloud deployment, HTTPS/domain configuration and production access policy, to be done together.
 
 See [operations](OPERATIONS.md) for concrete commands and the deployment-day checklist. Do not tag v1.0 or claim a fully production-verified release until those gates pass.
+
+## GitHub Actions repair — 30 October 2026
+
+The first uploaded run passed the backend job but failed web startup and infrastructure image retrieval.
+
+- Windows Playwright startup now uses `infrastructure/scripts/python.cjs`, which launches the absolute virtual-environment Python executable with `shell: false`. Both Playwright and `npm run test:api` use this launcher. CI refuses to reuse pre-existing web/API servers, so it exercises startup on each run.
+- MinIO no longer pulls the unavailable `minio/minio` image. Compose builds the server from official source commit `07c3a429bfed433e49018cb0f78a52145d4bedeb`, corresponding to the same previously selected release. A MinIO readiness check gates API startup. Infrastructure CI allows 30 minutes for the initial source build.
+- The dependency installer paths in the Windows workflow remain PowerShell commands; the reported failure was in Playwright's separate command-shell startup.
+
+The source-build change still needs execution in a working Docker environment. It does not, by itself, establish a passing infrastructure job. Push these changes and inspect the new GitHub Actions run; re-running the old commit does not include the repair.
+
+Repair checks completed locally: both launcher regression tests passed, including invocation from another working directory and exit-code propagation; a Windows `cmd.exe` launch with a script path containing spaces passed; the production web build, JavaScript syntax checks and `docker compose config --quiet` passed. The new launcher checks also run before the web build in CI. Full backend/browser rerun attempts stalled in the restricted local execution environment and were interrupted; they are not recorded as new passes. Docker's engine was unavailable, so source-image build and full infrastructure verification remain pending.
